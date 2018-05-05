@@ -11,35 +11,71 @@ defmodule CustomMessagePackTest do
     assert CustomMessagePack.unpack(<<0xC3>>) == true
   end
 
+  test "can unpack unsigned integers" do
+    # 8 bit
+    # (1100 1100) 0000 0000
+    assert CustomMessagePack.unpack(<<0xCC00>>) == 0
+    # (1100 1100) 0001 0001
+    assert CustomMessagePack.unpack(<<0xCC11>>) == 17
+    # (1100 1100) 0111 1111 ->
+    assert CustomMessagePack.unpack(<<0xCC7F>>) == 127
+    # (1100 1100) 1000 0000 ->
+    assert CustomMessagePack.unpack(<<0xCC80>>) == 128
+    # (1100 1100) 1111 1111 ->
+    assert CustomMessagePack.unpack(<<0xCCFF>>) == 255
+
+    # 16 bit
+    # (1100 1101) 0000 0001 0000 0000 ->
+    assert CustomMessagePack.unpack(<<0xCD0100>>) == 256
+    # (1100 1101) 0001 0000 0101 1110 ->
+    assert CustomMessagePack.unpack(<<0xCD105E>>) == 4190
+    # (1100 1101) 1111 1111 1111 1111 ->
+    assert CustomMessagePack.unpack(<<0xCDFFFF>>) == 65535
+
+    # 32 bit
+    # (1100 1110) 0000 0000 0000 0001 0000 0000 0000 0000 ->
+    assert CustomMessagePack.unpack(<<0xCE00010000>>) == 65536
+    # (1100 1110) 1111 1111 1111 1111 1111 1111 1111 1111 ->
+    assert CustomMessagePack.unpack(<<0xCEFFFFFFFF>>) == 4_294_967_295
+
+    # 64 bit
+    assert CustomMessagePack.unpack(<<0xCF0000000100000000>>) == 4_294_967_296
+    assert CustomMessagePack.unpack(<<0xCF0000006968827AF4>>) == 452_724_947_700
+  end
+
   test "can unpack signed integers" do
-    # 8 bit positive
-    # (1101 0000) 0000 0000
-    assert CustomMessagePack.unpack(<<0xD000>>) == 0
-    # (1101 0000) 0000 0011
-    assert CustomMessagePack.unpack(<<0xD000>>) == 3
-    # (1101 0000) 0111 1111 ->
-    assert CustomMessagePack.unpack(<<0xD07F>>) == 127
-    # (1101 0000) 1000 0000 ->
-    assert CustomMessagePack.unpack(<<0xD080>>) == 128
-    # (1101 0000) 1111 1111 ->
-    assert CustomMessagePack.unpack(<<0xD0FF>>) == 255
+    # 8 bit
+    # (1101 0000) 1111 1111
+    assert CustomMessagePack.unpack(<<0xD0FF>>) == -1
+    # (1101 0000) 1110 0000
+    assert CustomMessagePack.unpack(<<0xD0E0>>) == -32
+    # (1101 0000) 1101 1111 ->
+    assert CustomMessagePack.unpack(<<0xD0DF>>) == -33
+    # (1101 0000) 1000 0001 ->
+    assert CustomMessagePack.unpack(<<0xD081>>) == -127
 
-    # 16 bit positive
-    # (1100 0001) 0000 0001 0000 0000 ->
-    assert CustomMessagePack.unpack(<<0xD10100>>) == 256
-    # (1100 0001) 0001 0000 0101 1110 ->
-    assert CustomMessagePack.unpack(<<0xD1105E>>) == 4190
-    # (1100 0001) 1111 1111 1111 1111 ->
-    assert CustomMessagePack.unpack(<<0xD1FFFF>>) == 65535
+    # 16 bit
+    # (1101 0001) 1111 1111 1000 0000 ->
+    assert CustomMessagePack.unpack(<<0xD1FF80>>) == -128
+    # (1101 0001) 1111 1111 0111 1111 ->
+    assert CustomMessagePack.unpack(<<0xD1FF7F>>) == -129
+    # (1100 0001) 1111 1111 0000 0000 ->
+    assert CustomMessagePack.unpack(<<0xD1FF00>>) == -256
+    # (1100 0001) 1000 0000 0000 0001 ->
+    assert CustomMessagePack.unpack(<<0xD18001>>) == -32767
 
-    # 32 bit positive
-    # (1100 0010) 0000 0000 0000 0001 0000 0000 0000 0000 ->
-    assert CustomMessagePack.unpack(<<0xD200010000>>) == 65536
-    # (1100 0010) 1111 1111 1111 1111 1111 1111 1111 1111 ->
-    assert CustomMessagePack.unpack(<<0xD2FFFFFFFF>>) == 4_294_967_295
+    # 32 bit
+    # (1100 0010) 1111 1111 1111 1111 1000 0000 0000 0000 ->
+    assert CustomMessagePack.unpack(<<0xD2FFFF8000>>) == -32768
+    # (1100 0010) 1111 1111 1111 1111 0111 1111 1111 1111 ->
+    assert CustomMessagePack.unpack(<<0xD2FFFF7FFF>>) == -32769
+    # (1100 0010) 1111 1111 1111 1111 0000 0000 0000 0000 ->
+    assert CustomMessagePack.unpack(<<0xD2FFFF0000>>) == -65536
+    # (1100 0010) 1000 0000 0000 0000 0000 0000 0000 0001 ->
+    assert CustomMessagePack.unpack(<<0xD280000001>>) == -2_147_483_647
 
-    # 64 bit positive
-    assert CustomMessagePack.unpack(<<0xD30000000100000000>>) == 4_294_967_296
-    assert CustomMessagePack.unpack(<<0xD30000006968827AF4>>) == 452_724_947_700
+    # 64 bit
+    assert CustomMessagePack.unpack(<<0xD3FFFFFFFF80000000>>) == -2_147_483_648
+    assert CustomMessagePack.unpack(<<0xD3FFFFFFFF00000000>>) == -4_294_967_296
   end
 end
