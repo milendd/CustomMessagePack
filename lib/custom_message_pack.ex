@@ -1,18 +1,11 @@
 defmodule CustomMessagePack do
-  @moduledoc """
-  Documentation for CustomMessagePack.
-  """
+  # JSON standart used: RFC 7159
 
-  @doc """
-  Hello world.
-
-  ## Examples
-
-      iex> CustomMessagePack.hello
-      :world
-
-  """
-  def hello do
-    :world
+  def unpack(binary) do
+    case binary do
+      <<0xC0>> -> nil
+      <<0xC2>> -> false
+      <<0xC3>> -> true
+    end
   end
 end
