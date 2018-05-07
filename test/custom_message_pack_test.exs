@@ -5,13 +5,17 @@ defmodule CustomMessagePackTest do
   test "can unpack nil and bool types" do
     # 1100 0000
     assert CustomMessagePack.unpack(<<0xC0>>) == nil
+    assert CustomMessagePack.unpack(<<0xC0, 111>>) == nil
     # 1100 0010
     assert CustomMessagePack.unpack(<<0xC2>>) == false
+    assert CustomMessagePack.unpack(<<0xC2, 111>>) == false
     # 1100 0011
     assert CustomMessagePack.unpack(<<0xC3>>) == true
+    assert CustomMessagePack.unpack(<<0xC3, 111>>) == true
   end
 
   test "can unpack unsigned integers" do
+    # TODO: add tests with other data
     # 8 bit
     # (1100 1100) 0000 0000
     assert CustomMessagePack.unpack(<<0xCC, 0>>) == 0
@@ -44,6 +48,7 @@ defmodule CustomMessagePackTest do
   end
 
   test "can unpack signed integers" do
+    # TODO: add tests with other data
     # 8 bit
     # (1101 0000) 1111 1111
     assert CustomMessagePack.unpack(<<0xD0, 255>>) == -1
@@ -82,6 +87,12 @@ defmodule CustomMessagePackTest do
   test "can unpack double floating point numbers" do
     assert CustomMessagePack.unpack(<<0xCB, 64, 19, 194, 143, 92, 40, 245, 195>>) == 4.94
     assert CustomMessagePack.unpack(<<0xCB, 191, 230, 102, 102, 102, 102, 102, 102>>) == -0.7
+
+    # with other data in binary
+    assert CustomMessagePack.unpack(<<0xCB, 64, 19, 194, 143, 92, 40, 245, 195, 1, 1, 1>>) == 4.94
+
+    assert CustomMessagePack.unpack(<<0xCB, 191, 230, 102, 102, 102, 102, 102, 102, 1, 1, 1>>) ==
+             -0.7
   end
 
   test "can unpack fix strings" do
@@ -95,6 +106,10 @@ defmodule CustomMessagePackTest do
     assert CustomMessagePack.unpack(<<0xA1, 97>>) == "a"
     assert CustomMessagePack.unpack(<<0xA1, 122>>) == "z"
     assert CustomMessagePack.unpack(<<0xA4, 99, 100, 101, 48>>) == "cde0"
+
+    # with other data in binary
+    assert CustomMessagePack.unpack(<<0xA1, 57, 57, 57>>) == "9"
+    assert CustomMessagePack.unpack(<<0xA4, 99, 100, 101, 48, 6, 6, 6, 6, 6>>) == "cde0"
   end
 
   test "can unpack non fix strings with length (2^8)-1 bytes" do
@@ -107,6 +122,10 @@ defmodule CustomMessagePackTest do
 
     numbers_two = <<0xD9, 33>> <> ones <> twos <> threes <> to_string(444)
     assert CustomMessagePack.unpack(numbers_two) == "111111111122222222223333333333444"
+
+    # with other data in binary
+    numbers_three = <<0xD9, 33>> <> ones <> twos <> threes <> to_string(444) <> <<57, 57, 57>>
+    assert CustomMessagePack.unpack(numbers_three) == "111111111122222222223333333333444"
   end
 
   test "can unpack non fix strings with length (2^16)-1 bytes" do
@@ -120,6 +139,10 @@ defmodule CustomMessagePackTest do
 
     message = <<0xDA, first, second>> <> numbers
     assert CustomMessagePack.unpack(message) == numbers
+
+    # with other data in binary
+    message_two = <<0xDA, first, second>> <> numbers <> <<57, 57, 57>>
+    assert CustomMessagePack.unpack(message_two) == numbers
   end
 
   test "can unpack non fix strings with length (2^32)-1 bytes" do
@@ -136,6 +159,10 @@ defmodule CustomMessagePackTest do
 
     message = <<0xDB, first, second, third, fourth>> <> numbers
     assert CustomMessagePack.unpack(message) == numbers
+
+    # with other data in binary
+    message_two = <<0xDB, first, second, third, fourth>> <> numbers <> <<57, 57, 57>>
+    assert CustomMessagePack.unpack(message_two) == numbers
   end
 
   defp generate_numbers(n) do

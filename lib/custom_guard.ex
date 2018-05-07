@@ -1,4 +1,7 @@
 defmodule CustomGuard do
+  # array from 0 to 15 elements
+  defguard is_fix_array(n) when is_integer(n) and n >= 144 and n <= 159
+
   # 31 bytes for fixstr
   defguard is_fixstr(n) when is_integer(n) and n >= 160 and n <= 191
 
