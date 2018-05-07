@@ -96,4 +96,13 @@ defmodule CustomMessagePackTest do
     assert CustomMessagePack.unpack(<<0xA1, 122>>) == "z"
     assert CustomMessagePack.unpack(<<0xA4, 99, 100, 101, 48>>) == "cde0"
   end
+
+  test "can unpack non fix strings" do
+    ones = to_string(1_111_111_111)
+    twos = to_string(2_222_222_222)
+    threes = to_string(3_333_333_333)
+    fours = to_string(44)
+    numbers = <<0xD9, 32>> <> ones <> twos <> threes <> fours
+    assert CustomMessagePack.unpack(numbers) == "11111111112222222222333333333344"
+  end
 end
