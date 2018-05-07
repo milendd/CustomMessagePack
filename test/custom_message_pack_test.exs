@@ -97,12 +97,48 @@ defmodule CustomMessagePackTest do
     assert CustomMessagePack.unpack(<<0xA4, 99, 100, 101, 48>>) == "cde0"
   end
 
-  test "can unpack non fix strings" do
+  test "can unpack non fix strings with length (2^8)-1 bytes" do
     ones = to_string(1_111_111_111)
     twos = to_string(2_222_222_222)
     threes = to_string(3_333_333_333)
-    fours = to_string(44)
-    numbers = <<0xD9, 32>> <> ones <> twos <> threes <> fours
+
+    numbers = <<0xD9, 32>> <> ones <> twos <> threes <> to_string(44)
     assert CustomMessagePack.unpack(numbers) == "11111111112222222222333333333344"
+
+    numbers_two = <<0xD9, 33>> <> ones <> twos <> threes <> to_string(444)
+    assert CustomMessagePack.unpack(numbers_two) == "111111111122222222223333333333444"
+  end
+
+  test "can unpack non fix strings with length (2^16)-1 bytes" do
+    max_length = 500
+    base = 256
+    numbers = generate_numbers(max_length)
+
+    # (500 = 00000001 11110100) -> first: 1, second: 244
+    first = trunc(max_length / base)
+    second = rem(max_length, base)
+
+    message = <<0xDA, first, second>> <> numbers
+    assert CustomMessagePack.unpack(message) == numbers
+  end
+
+  test "can unpack non fix strings with length (2^32)-1 bytes" do
+    max_length = 70_000
+    base = 256
+    numbers = generate_numbers(max_length)
+
+    # (70000 = 00000000 00000001 00010001 01110000) ->
+    # first: 0, second: 1, third: 17, fourth 112
+    first = trunc(max_length / (base * base * base))
+    second = rem(trunc(max_length / (base * base)), base)
+    third = rem(trunc(max_length / base), base)
+    fourth = rem(max_length, base)
+
+    message = <<0xDB, first, second, third, fourth>> <> numbers
+    assert CustomMessagePack.unpack(message) == numbers
+  end
+
+  defp generate_numbers(n) do
+    Enum.reduce(1..n, "", fn i, acc -> acc <> to_string(rem(i, 10)) end)
   end
 end
