@@ -165,6 +165,21 @@ defmodule CustomMessagePackTest do
     assert CustomMessagePack.unpack(message_two) == numbers
   end
 
+  test "can unpack fixed arrays" do
+    # TODO: add tests with numbers and objects
+    # TODO: add tests with other data in binary
+    assert CustomMessagePack.unpack(<<0x90>>) == []
+    assert CustomMessagePack.unpack(<<0x91, 161, 97>>) == ["a"]
+    assert CustomMessagePack.unpack(<<0x92, 161, 97, 161, 98>>) == ["a", "b"]
+    assert CustomMessagePack.unpack(<<0x92, 161, 97, 162, 98, 99>>) == ["a", "bc"]
+
+    assert CustomMessagePack.unpack(<<0x93, 161, 97, 162, 98, 99, 163, 100, 101, 102>>) == [
+             "a",
+             "bc",
+             "def"
+           ]
+  end
+
   defp generate_numbers(n) do
     Enum.reduce(1..n, "", fn i, acc -> acc <> to_string(rem(i, 10)) end)
   end
