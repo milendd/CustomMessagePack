@@ -43,7 +43,7 @@ defmodule CustomMessagePack do
       <<0xDB, a, b, c, d, x::binary>> when are_8_bit(a, b, c, d) ->
         unpack_string(x, [a, b, c, d])
 
-      # 4. integer types
+      # 4. unsigned integer types
       <<0xCC, n, x::binary>> when is_8_bit(n) ->
         %{result: n, rest: x}
 
@@ -56,6 +56,20 @@ defmodule CustomMessagePack do
       <<0xCF, a, b, c, d, a2, b2, c2, d2, x::binary>>
       when are_8_bit(a, b, c, d) and are_8_bit(a2, b2, c2, d2) ->
         %{result: convert_list_to_unsigned_number([a, b, c, d, a2, b2, c2, d2]), rest: x}
+
+      # 5. signed integer types
+      <<0xD0, n, x::binary>> when is_8_bit(n) ->
+        %{result: n - :math.pow(2, 8), rest: x}
+
+      <<0xD1, a, b, x::binary>> when is_8_bit(a) and is_8_bit(b) ->
+        unpack_integer(x, [a, b], 16)
+
+      <<0xD2, a, b, c, d, x::binary>> when are_8_bit(a, b, c, d) ->
+        unpack_integer(x, [a, b, c, d], 32)
+
+      <<0xD3, a, b, c, d, a2, b2, c2, d2, x::binary>>
+      when are_8_bit(a, b, c, d) and are_8_bit(a2, b2, c2, d2) ->
+        unpack_integer(x, [a, b, c, d, a2, b2, c2, d2], 64)
     end
   end
 
@@ -84,6 +98,11 @@ defmodule CustomMessagePack do
   defp unpack_string(bin, bin_size) do
     <<head::binary-size(bin_size), x::binary>> = bin
     %{result: head, rest: x}
+  end
+
+  defp unpack_integer(x, int_list, base) do
+    number = convert_list_to_unsigned_number(int_list)
+    %{result: number - :math.pow(2, base), rest: x}
   end
 
   # [1, 244] -> (00000001 11110100) -> 500

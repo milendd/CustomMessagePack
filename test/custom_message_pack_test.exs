@@ -60,42 +60,50 @@ defmodule CustomMessagePackTest do
     assert CustomMessagePack.unpack(<<0xCF, 0, 0, 0, 1, 0, 0, 0, 0, 55, 55, 55>>) == 4_294_967_296
   end
 
-  # test "can unpack signed integers" do
-  #   # TODO: add tests with other data
-  #   # 8 bit
-  #   # (1101 0000) 1111 1111
-  #   assert CustomMessagePack.unpack(<<0xD0, 255>>) == -1
-  #   # (1101 0000) 1110 0000
-  #   assert CustomMessagePack.unpack(<<0xD0, 224>>) == -32
-  #   # (1101 0000) 1101 1111 ->
-  #   assert CustomMessagePack.unpack(<<0xD0, 223>>) == -33
-  #   # (1101 0000) 1000 0001 ->
-  #   assert CustomMessagePack.unpack(<<0xD0, 129>>) == -127
-  # 
-  #   # 16 bit
-  #   # (1101 0001) 1111 1111 1000 0000 ->
-  #   assert CustomMessagePack.unpack(<<0xD1, 255, 128>>) == -128
-  #   # (1101 0001) 1111 1111 0111 1111 ->
-  #   assert CustomMessagePack.unpack(<<0xD1, 255, 127>>) == -129
-  #   # (1100 0001) 1111 1111 0000 0000 ->
-  #   assert CustomMessagePack.unpack(<<0xD1, 255, 0>>) == -256
-  #   # (1100 0001) 1000 0000 0000 0001 ->
-  #   assert CustomMessagePack.unpack(<<0xD1, 128, 1>>) == -32767
-  # 
-  #   # 32 bit
-  #   # (1100 0010) 1111 1111 1111 1111 1000 0000 0000 0000 ->
-  #   assert CustomMessagePack.unpack(<<0xD2, 255, 255, 128, 0>>) == -32768
-  #   # (1100 0010) 1111 1111 1111 1111 0111 1111 1111 1111 ->
-  #   assert CustomMessagePack.unpack(<<0xD2, 255, 255, 127, 255>>) == -32769
-  #   # (1100 0010) 1111 1111 1111 1111 0000 0000 0000 0000 ->
-  #   assert CustomMessagePack.unpack(<<0xD2, 255, 255, 0, 0>>) == -65536
-  #   # (1100 0010) 1000 0000 0000 0000 0000 0000 0000 0001 ->
-  #   assert CustomMessagePack.unpack(<<0xD2, 128, 0, 0, 1>>) == -2_147_483_647
-  # 
-  #   # 64 bit
-  #   assert CustomMessagePack.unpack(<<0xD3, 255, 255, 255, 255, 128, 0, 0, 0>>) == -2_147_483_648
-  #   assert CustomMessagePack.unpack(<<0xD3, 255, 255, 255, 255, 0, 0, 0, 0>>) == -4_294_967_296
-  # end
+  test "can unpack signed integers" do
+    # 8 bit
+    # (1101 0000) 1111 1111
+    assert CustomMessagePack.unpack(<<0xD0, 255>>) == -1
+    # (1101 0000) 1110 0000
+    assert CustomMessagePack.unpack(<<0xD0, 224>>) == -32
+    # (1101 0000) 1101 1111 ->
+    assert CustomMessagePack.unpack(<<0xD0, 223>>) == -33
+    # (1101 0000) 1000 0001 ->
+    assert CustomMessagePack.unpack(<<0xD0, 129>>) == -127
+
+    # 16 bit
+    # (1101 0001) 1111 1111 1000 0000 ->
+    assert CustomMessagePack.unpack(<<0xD1, 255, 128>>) == -128
+    # (1101 0001) 1111 1111 0111 1111 ->
+    assert CustomMessagePack.unpack(<<0xD1, 255, 127>>) == -129
+    # (1100 0001) 1111 1111 0000 0000 ->
+    assert CustomMessagePack.unpack(<<0xD1, 255, 0>>) == -256
+    # (1100 0001) 1000 0000 0000 0001 ->
+    assert CustomMessagePack.unpack(<<0xD1, 128, 1>>) == -32767
+
+    # 32 bit
+    # (1100 0010) 1111 1111 1111 1111 1000 0000 0000 0000 ->
+    assert CustomMessagePack.unpack(<<0xD2, 255, 255, 128, 0>>) == -32768
+    # (1100 0010) 1111 1111 1111 1111 0111 1111 1111 1111 ->
+    assert CustomMessagePack.unpack(<<0xD2, 255, 255, 127, 255>>) == -32769
+    # (1100 0010) 1111 1111 1111 1111 0000 0000 0000 0000 ->
+    assert CustomMessagePack.unpack(<<0xD2, 255, 255, 0, 0>>) == -65536
+    # (1100 0010) 1000 0000 0000 0000 0000 0000 0000 0001 ->
+    assert CustomMessagePack.unpack(<<0xD2, 128, 0, 0, 1>>) == -2_147_483_647
+
+    # 64 bit
+    assert CustomMessagePack.unpack(<<0xD3, 255, 255, 255, 255, 128, 0, 0, 0>>) == -2_147_483_648
+    assert CustomMessagePack.unpack(<<0xD3, 255, 255, 255, 255, 0, 0, 0, 0>>) == -4_294_967_296
+
+    # with other data in binary
+    assert CustomMessagePack.unpack(<<0xD0, 224, 1, 1, 1, 1>>) == -32
+    assert CustomMessagePack.unpack(<<0xD1, 255, 127, 1, 1, 1>>) == -129
+    assert CustomMessagePack.unpack(<<0xD2, 255, 255, 0, 0, 77, 77, 77, 77>>) == -65536
+
+    assert CustomMessagePack.unpack(<<0xD3, 255, 255, 255, 255, 128, 0, 0, 0, 2, 2>>) ==
+             -2_147_483_648
+  end
+
   # 
   # test "can unpack double floating point numbers" do
   #   assert CustomMessagePack.unpack(<<0xCB, 64, 19, 194, 143, 92, 40, 245, 195>>) == 4.94
@@ -105,6 +113,6 @@ defmodule CustomMessagePackTest do
   #   assert CustomMessagePack.unpack(<<0xCB, 64, 19, 194, 143, 92, 40, 245, 195, 1, 1, 1>>) == 4.94
   # 
   #   assert CustomMessagePack.unpack(<<0xCB, 191, 230, 102, 102, 102, 102, 102, 102, 1, 1, 1>>) ==
-  #            -0.7
+  #     -0.7
   # end
 end
