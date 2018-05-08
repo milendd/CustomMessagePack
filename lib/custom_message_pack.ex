@@ -4,11 +4,11 @@ defmodule CustomMessagePack do
   import CustomGuard
 
   def unpack(binary) do
-    %{result: result} = unpack_value(binary)
+    %{result: result, rest: _} = unpack_value(binary)
     result
   end
 
-  defp unpack_value(binary) do
+  def unpack_value(binary) do
     case binary do
       <<0xC0, x::binary>> -> %{result: nil, rest: x}
       <<0xC2, x::binary>> -> %{result: false, rest: x}
@@ -21,7 +21,7 @@ defmodule CustomMessagePack do
     end
   end
 
-  defp unpack_array(<<>>, _), do: %{result: []}
+  defp unpack_array(<<>>, _), do: %{result: [], rest: <<>>}
 
   defp unpack_array(x, 0) when is_bitstring(x) do
     %{result: [], rest: x}
@@ -29,13 +29,13 @@ defmodule CustomMessagePack do
 
   defp unpack_array(x, n) when is_bitstring(x) do
     %{result: result, rest: rest} = unpack_value(x)
-    %{result: new_result} = unpack_array(rest, n - 1)
-    %{result: [result | new_result]}
+    %{result: new_result, rest: rest} = unpack_array(rest, n - 1)
+    %{result: [result | new_result], rest: rest}
   end
 
-  defp unpack_string(bin, x) when is_list(x) do
+  defp unpack_string(bin, length_list) when is_list(length_list) do
     binary_number =
-      Enum.reduce(x, "", fn i, acc ->
+      Enum.reduce(length_list, "", fn i, acc ->
         acc <> (Integer.to_string(i, 2) |> String.pad_leading(8, "0"))
       end)
 
