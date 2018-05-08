@@ -104,6 +104,18 @@ defmodule CustomMessagePackTest do
              -2_147_483_648
   end
 
+  test "can unpack fixed negative numbers" do
+    assert CustomMessagePack.unpack(<<0xF0>>) == -16
+    assert CustomMessagePack.unpack(<<0xF5>>) == -11
+    assert CustomMessagePack.unpack(<<0xF6>>) == -10
+    assert CustomMessagePack.unpack(<<0xFE>>) == -2
+    assert CustomMessagePack.unpack(<<0xFF>>) == -1
+
+    # with other data in binary
+    assert CustomMessagePack.unpack(<<0xF0, 3, 3, 3>>) == -16
+    assert CustomMessagePack.unpack(<<0xFE, 2, 7, 1>>) == -2
+  end
+
   # 
   # test "can unpack double floating point numbers" do
   #   assert CustomMessagePack.unpack(<<0xCB, 64, 19, 194, 143, 92, 40, 245, 195>>) == 4.94

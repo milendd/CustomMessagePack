@@ -5,6 +5,9 @@ defmodule CustomGuard do
   # 31 bytes for fixstr
   defguard is_fixstr(n) when is_integer(n) and n >= 160 and n <= 191
 
+  # fixed negative
+  defguard is_fix_negative(n) when is_integer(n) and n >= 224 and n <= 255
+
   defguard is_8_bit(n) when is_integer(n) and n >= 0 and n <= 255
 
   # I can't use Enum.all? because

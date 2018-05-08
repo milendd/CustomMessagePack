@@ -70,6 +70,10 @@ defmodule CustomMessagePack do
       <<0xD3, a, b, c, d, a2, b2, c2, d2, x::binary>>
       when are_8_bit(a, b, c, d) and are_8_bit(a2, b2, c2, d2) ->
         unpack_integer(x, [a, b, c, d, a2, b2, c2, d2], 64)
+
+      # 6. fixed negative
+      <<n, x::binary>> when is_fix_negative(n) ->
+        %{result: n - 256, rest: x}
     end
   end
 
