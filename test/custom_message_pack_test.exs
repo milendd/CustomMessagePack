@@ -165,54 +165,11 @@ defmodule CustomMessagePackTest do
     assert CustomMessagePack.unpack(message_two) == numbers
   end
 
-  test "can unpack fixed arrays - up to 15 elements" do
-    # TODO: add tests with numbers and objects
-    assert CustomMessagePack.unpack(<<0x90>>) == []
-    assert CustomMessagePack.unpack(<<0x91, 161, 97>>) == ["a"]
-    assert CustomMessagePack.unpack(<<0x92, 161, 97, 161, 98>>) == ["a", "b"]
-    assert CustomMessagePack.unpack(<<0x92, 161, 97, 162, 98, 99>>) == ["a", "bc"]
-
-    assert CustomMessagePack.unpack(<<0x93, 161, 97, 162, 98, 99, 163, 100, 101, 102>>) == [
-             "a",
-             "bc",
-             "def"
-           ]
-
-    # with other data in binary
-    assert CustomMessagePack.unpack(<<0x92, 161, 97, 161, 98, 161, 98>>) == ["a", "b"]
-    assert CustomMessagePack.unpack(<<0x92, 161, 97, 161, 98, 1, 1>>) == ["a", "b"]
-    assert CustomMessagePack.unpack(<<0x90, 161, 97>>) == []
-  end
-
-  test "can unpack non fixed arrays - up to (2^16)-1 elements" do
-    max_length = 20
-    base = 256
-
-    # generates ["1", "2", ...]
-    numbers = generate_array(max_length)
-    first = trunc(max_length / base)
-    second = rem(max_length, base)
-
-    # used from the original site
-    message = <<0xDC, first, second>> <> generate_sample(max_length)
-    assert CustomMessagePack.unpack(message) == numbers
-  end
-
-  defp generate_binary(n) do
+  def generate_binary(n) do
     Enum.reduce(1..n, "", fn i, acc -> acc <> to_string(rem(i, 10)) end)
   end
 
-  defp generate_array(n) do
+  def generate_array(n) do
     Enum.map(1..n, fn i -> to_string(rem(i, 10)) end)
-  end
-
-  defp generate_sample(20) do
-    <<0xA1, 0x31, 0xA1, 0x32, 0xA1, 0x33, 0xA1, 0x34, 0xA1, 0x35, 0xA1, 0x36, 0xA1, 0x37, 0xA1,
-      0x38, 0xA1, 0x39, 0xA1, 0x30, 0xA1, 0x31, 0xA1, 0x32, 0xA1, 0x33, 0xA1, 0x34, 0xA1, 0x35,
-      0xA1, 0x36, 0xA1, 0x37, 0xA1, 0x38, 0xA1, 0x39, 0xA1, 0x30, 0xA1, 0x31, 0xA1, 0x32, 0xA1,
-      0x33, 0xA1, 0x34, 0xA1, 0x35, 0xA1, 0x36, 0xA1, 0x37, 0xA1, 0x38, 0xA1, 0x39, 0xA1, 0x30,
-      0xA1, 0x31, 0xA1, 0x32, 0xA1, 0x33, 0xA1, 0x34, 0xA1, 0x35, 0xA1, 0x36, 0xA1, 0x37, 0xA1,
-      0x38, 0xA1, 0x39, 0xA1, 0x30, 0xA1, 0x31, 0xA1, 0x32, 0xA1, 0x33, 0xA1, 0x34, 0xA1, 0x35,
-      0xA1, 0x36, 0xA1, 0x37, 0xA1, 0x38, 0xA1, 0x39, 0xA1, 0x30>>
   end
 end
