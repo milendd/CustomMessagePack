@@ -22,39 +22,44 @@ defmodule CustomMessagePackTest do
     assert CustomMessagePack.unpack(<<0xC3, 111>>) == true
   end
 
-  # test "can unpack unsigned integers" do
-  #   # TODO: add tests with other data
-  #   # 8 bit
-  #   # (1100 1100) 0000 0000
-  #   assert CustomMessagePack.unpack(<<0xCC, 0>>) == 0
-  #   # (1100 1100) 0001 0001
-  #   assert CustomMessagePack.unpack(<<0xCC, 17>>) == 17
-  #   # (1100 1100) 0111 1111 ->
-  #   assert CustomMessagePack.unpack(<<0xCC, 127>>) == 127
-  #   # (1100 1100) 1000 0000 ->
-  #   assert CustomMessagePack.unpack(<<0xCC, 128>>) == 128
-  #   # (1100 1100) 1111 1111 ->
-  #   assert CustomMessagePack.unpack(<<0xCC, 255>>) == 255
-  # 
-  #   # 16 bit
-  #   # (1100 1101) 0000 0001 0000 0000 ->
-  #   assert CustomMessagePack.unpack(<<0xCD, 1, 0>>) == 256
-  #   # (1100 1101) 0001 0000 0101 1110 ->
-  #   assert CustomMessagePack.unpack(<<0xCD, 16, 94>>) == 4190
-  #   # (1100 1101) 1111 1111 1111 1111 ->
-  #   assert CustomMessagePack.unpack(<<0xCD, 255, 255>>) == 65535
-  # 
-  #   # 32 bit
-  #   # (1100 1110) 0000 0000 0000 0001 0000 0000 0000 0000 ->
-  #   assert CustomMessagePack.unpack(<<0xCE, 0, 1, 0, 0>>) == 65536
-  #   # (1100 1110) 1111 1111 1111 1111 1111 1111 1111 1111 ->
-  #   assert CustomMessagePack.unpack(<<0xCE, 255, 255, 255, 255>>) == 4_294_967_295
-  # 
-  #   # 64 bit
-  #   assert CustomMessagePack.unpack(<<0xCF, 0, 0, 0, 1, 0, 0, 0, 0>>) == 4_294_967_296
-  #   assert CustomMessagePack.unpack(<<0xCF, 0, 0, 0, 105, 104, 130, 122, 244>>) == 452_724_947_700
-  # end
-  # 
+  test "can unpack unsigned integers" do
+    # 8 bit
+    # (1100 1100) 0000 0000
+    assert CustomMessagePack.unpack(<<0xCC, 0>>) == 0
+    # (1100 1100) 0001 0001
+    assert CustomMessagePack.unpack(<<0xCC, 17>>) == 17
+    # (1100 1100) 0111 1111 ->
+    assert CustomMessagePack.unpack(<<0xCC, 127>>) == 127
+    # (1100 1100) 1000 0000 ->
+    assert CustomMessagePack.unpack(<<0xCC, 128>>) == 128
+    # (1100 1100) 1111 1111 ->
+    assert CustomMessagePack.unpack(<<0xCC, 255>>) == 255
+
+    # 16 bit
+    # (1100 1101) 0000 0001 0000 0000 ->
+    assert CustomMessagePack.unpack(<<0xCD, 1, 0>>) == 256
+    # (1100 1101) 0001 0000 0101 1110 ->
+    assert CustomMessagePack.unpack(<<0xCD, 16, 94>>) == 4190
+    # (1100 1101) 1111 1111 1111 1111 ->
+    assert CustomMessagePack.unpack(<<0xCD, 255, 255>>) == 65535
+
+    # 32 bit
+    # (1100 1110) 0000 0000 0000 0001 0000 0000 0000 0000 ->
+    assert CustomMessagePack.unpack(<<0xCE, 0, 1, 0, 0>>) == 65536
+    # (1100 1110) 1111 1111 1111 1111 1111 1111 1111 1111 ->
+    assert CustomMessagePack.unpack(<<0xCE, 255, 255, 255, 255>>) == 4_294_967_295
+
+    # 64 bit
+    assert CustomMessagePack.unpack(<<0xCF, 0, 0, 0, 1, 0, 0, 0, 0>>) == 4_294_967_296
+    assert CustomMessagePack.unpack(<<0xCF, 0, 0, 0, 105, 104, 130, 122, 244>>) == 452_724_947_700
+
+    # with other data in binary
+    assert CustomMessagePack.unpack(<<0xCC, 17, 1, 1>>) == 17
+    assert CustomMessagePack.unpack(<<0xCD, 16, 94, 1, 1, 1>>) == 4190
+    assert CustomMessagePack.unpack(<<0xCE, 0, 1, 0, 2, 66, 66, 66, 66>>) == 65538
+    assert CustomMessagePack.unpack(<<0xCF, 0, 0, 0, 1, 0, 0, 0, 0, 55, 55, 55>>) == 4_294_967_296
+  end
+
   # test "can unpack signed integers" do
   #   # TODO: add tests with other data
   #   # 8 bit

@@ -10,16 +10,52 @@ defmodule CustomMessagePack do
 
   def unpack_value(binary) do
     case binary do
-      <<0xC0, x::binary>> -> %{result: nil, rest: x}
-      <<0xC2, x::binary>> -> %{result: false, rest: x}
-      <<0xC3, x::binary>> -> %{result: true, rest: x}
-      <<n, x::binary>> when is_fix_array(n) -> unpack_array(x, n - 144)
-      <<0xDC, a, b, x::binary>> when is_8_bit(a) and is_8_bit(b) -> unpack_array(x, [a, b])
-      <<0xDD, a, b, c, d, x::binary>> when are_8_bit(a, b, c, d) -> unpack_array(x, [a, b, c, d])
-      <<n, x::binary>> when is_fixstr(n) -> unpack_string(x, n - 160)
-      <<0xD9, n, x::binary>> when is_8_bit(n) -> unpack_string(x, n)
-      <<0xDA, a, b, x::binary>> when is_8_bit(a) and is_8_bit(b) -> unpack_string(x, [a, b])
-      <<0xDB, a, b, c, d, x::binary>> when are_8_bit(a, b, c, d) -> unpack_string(x, [a, b, c, d])
+      # 1. nil and bool types
+      <<0xC0, x::binary>> ->
+        %{result: nil, rest: x}
+
+      <<0xC2, x::binary>> ->
+        %{result: false, rest: x}
+
+      <<0xC3, x::binary>> ->
+        %{result: true, rest: x}
+
+      # 2. array types
+      <<n, x::binary>> when is_fix_array(n) ->
+        unpack_array(x, n - 144)
+
+      <<0xDC, a, b, x::binary>> when is_8_bit(a) and is_8_bit(b) ->
+        unpack_array(x, [a, b])
+
+      <<0xDD, a, b, c, d, x::binary>> when are_8_bit(a, b, c, d) ->
+        unpack_array(x, [a, b, c, d])
+
+      # 3. string types
+      <<n, x::binary>> when is_fixstr(n) ->
+        unpack_string(x, n - 160)
+
+      <<0xD9, n, x::binary>> when is_8_bit(n) ->
+        unpack_string(x, n)
+
+      <<0xDA, a, b, x::binary>> when is_8_bit(a) and is_8_bit(b) ->
+        unpack_string(x, [a, b])
+
+      <<0xDB, a, b, c, d, x::binary>> when are_8_bit(a, b, c, d) ->
+        unpack_string(x, [a, b, c, d])
+
+      # 4. integer types
+      <<0xCC, n, x::binary>> when is_8_bit(n) ->
+        %{result: n, rest: x}
+
+      <<0xCD, a, b, x::binary>> when is_8_bit(a) and is_8_bit(b) ->
+        %{result: convert_list_to_unsigned_number([a, b]), rest: x}
+
+      <<0xCE, a, b, c, d, x::binary>> when are_8_bit(a, b, c, d) ->
+        %{result: convert_list_to_unsigned_number([a, b, c, d]), rest: x}
+
+      <<0xCF, a, b, c, d, a2, b2, c2, d2, x::binary>>
+      when are_8_bit(a, b, c, d) and are_8_bit(a2, b2, c2, d2) ->
+        %{result: convert_list_to_unsigned_number([a, b, c, d, a2, b2, c2, d2]), rest: x}
     end
   end
 
