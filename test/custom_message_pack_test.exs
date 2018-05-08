@@ -95,7 +95,7 @@ defmodule CustomMessagePackTest do
   #            -0.7
   # end
 
-  test "can unpack fix strings" do
+  test "can unpack fixed strings" do
     assert CustomMessagePack.unpack(<<0xA0>>) == ""
     assert CustomMessagePack.unpack(<<0xA1, 48>>) == "0"
     assert CustomMessagePack.unpack(<<0xA1, 57>>) == "9"
@@ -112,7 +112,7 @@ defmodule CustomMessagePackTest do
     assert CustomMessagePack.unpack(<<0xA4, 99, 100, 101, 48, 6, 6, 6, 6, 6>>) == "cde0"
   end
 
-  test "can unpack non fix strings with length (2^8)-1 bytes" do
+  test "can unpack non fixed strings with length (2^8)-1 bytes" do
     ones = to_string(1_111_111_111)
     twos = to_string(2_222_222_222)
     threes = to_string(3_333_333_333)
@@ -128,10 +128,10 @@ defmodule CustomMessagePackTest do
     assert CustomMessagePack.unpack(numbers_three) == "111111111122222222223333333333444"
   end
 
-  test "can unpack non fix strings with length (2^16)-1 bytes" do
+  test "can unpack non fixed strings with length (2^16)-1 bytes" do
     max_length = 500
     base = 256
-    numbers = generate_numbers(max_length)
+    numbers = generate_binary(max_length)
 
     # (500 = 00000001 11110100) -> first: 1, second: 244
     first = trunc(max_length / base)
@@ -145,10 +145,10 @@ defmodule CustomMessagePackTest do
     assert CustomMessagePack.unpack(message_two) == numbers
   end
 
-  test "can unpack non fix strings with length (2^32)-1 bytes" do
+  test "can unpack non fixed strings with length (2^32)-1 bytes" do
     max_length = 70_000
     base = 256
-    numbers = generate_numbers(max_length)
+    numbers = generate_binary(max_length)
 
     # (70000 = 00000000 00000001 00010001 01110000) ->
     # first: 0, second: 1, third: 17, fourth 112
@@ -165,7 +165,7 @@ defmodule CustomMessagePackTest do
     assert CustomMessagePack.unpack(message_two) == numbers
   end
 
-  test "can unpack fixed arrays" do
+  test "can unpack fixed arrays - up to 15 elements" do
     # TODO: add tests with numbers and objects
     assert CustomMessagePack.unpack(<<0x90>>) == []
     assert CustomMessagePack.unpack(<<0x91, 161, 97>>) == ["a"]
@@ -184,7 +184,26 @@ defmodule CustomMessagePackTest do
     assert CustomMessagePack.unpack(<<0x90, 161, 97>>) == []
   end
 
-  defp generate_numbers(n) do
+  test "can unpack non fixed arrays - up to (2^16)-1 elements" do
+    max_length = 500
+    base = 256
+
+    # generates ["1", "2", ...]
+    numbers = generate_array(max_length)
+
+    # (500 = 00000001 11110100) -> first: 1, second: 244
+    first = trunc(max_length / base)
+    second = rem(max_length, base)
+
+    message = <<0xDC, first, second>> <> generate_binary(max_length)
+    assert CustomMessagePack.unpack(message) == numbers
+  end
+
+  defp generate_binary(n) do
     Enum.reduce(1..n, "", fn i, acc -> acc <> to_string(rem(i, 10)) end)
+  end
+
+  defp generate_array(n) do
+    Enum.map(1..n, fn i -> to_string(rem(i, 10)) end)
   end
 end

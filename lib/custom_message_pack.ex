@@ -14,6 +14,7 @@ defmodule CustomMessagePack do
       <<0xC2, x::binary>> -> %{result: false, rest: x}
       <<0xC3, x::binary>> -> %{result: true, rest: x}
       <<n, x::binary>> when is_fix_array(n) -> unpack_array(x, n - 144)
+      <<0xDC, a, b, x::binary>> when is_8_bit(a) and is_8_bit(b) -> []
       <<n, x::binary>> when is_fixstr(n) -> unpack_string(x, n - 160)
       <<0xD9, n, x::binary>> when is_8_bit(n) -> unpack_string(x, n)
       <<0xDA, a, b, x::binary>> when is_8_bit(a) and is_8_bit(b) -> unpack_string(x, [a, b])
@@ -34,17 +35,23 @@ defmodule CustomMessagePack do
   end
 
   defp unpack_string(bin, length_list) when is_list(length_list) do
-    binary_number =
-      Enum.reduce(length_list, "", fn i, acc ->
-        acc <> (Integer.to_string(i, 2) |> String.pad_leading(8, "0"))
-      end)
-
-    {bin_size, ""} = Integer.parse(binary_number, 2)
+    bin_size = convert_list_to_unsigned_number(length_list)
     unpack_string(bin, bin_size)
   end
 
   defp unpack_string(bin, bin_size) do
     <<head::binary-size(bin_size), x::binary>> = bin
     %{result: head, rest: x}
+  end
+
+  # [1, 244] -> (00000001 11110100) -> 500
+  defp convert_list_to_unsigned_number(list) do
+    binary_number =
+      Enum.reduce(list, "", fn i, acc ->
+        acc <> (Integer.to_string(i, 2) |> String.pad_leading(8, "0"))
+      end)
+
+    {bin_size, ""} = Integer.parse(binary_number, 2)
+    bin_size
   end
 end
