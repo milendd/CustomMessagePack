@@ -14,12 +14,18 @@ defmodule CustomMessagePack do
       <<0xC2, x::binary>> -> %{result: false, rest: x}
       <<0xC3, x::binary>> -> %{result: true, rest: x}
       <<n, x::binary>> when is_fix_array(n) -> unpack_array(x, n - 144)
-      <<0xDC, a, b, x::binary>> when is_8_bit(a) and is_8_bit(b) -> []
+      <<0xDC, a, b, x::binary>> when is_8_bit(a) and is_8_bit(b) -> unpack_array(x, [a, b])
+      <<0xDD, a, b, c, d, x::binary>> when are_8_bit(a, b, c, d) -> unpack_array(x, [a, b, c, d])
       <<n, x::binary>> when is_fixstr(n) -> unpack_string(x, n - 160)
       <<0xD9, n, x::binary>> when is_8_bit(n) -> unpack_string(x, n)
       <<0xDA, a, b, x::binary>> when is_8_bit(a) and is_8_bit(b) -> unpack_string(x, [a, b])
       <<0xDB, a, b, c, d, x::binary>> when are_8_bit(a, b, c, d) -> unpack_string(x, [a, b, c, d])
     end
+  end
+
+  defp unpack_array(bin, length_list) when is_list(length_list) do
+    bin_size = convert_list_to_unsigned_number(length_list)
+    unpack_array(bin, bin_size)
   end
 
   defp unpack_array(<<>>, _), do: %{result: [], rest: <<>>}
