@@ -8,13 +8,12 @@ defmodule CustomMessagePack do
     result
   end
 
-  # TODO: add private defp
   defp unpack_value(binary) do
     case binary do
       <<0xC0, x::binary>> -> %{result: nil, rest: x}
       <<0xC2, x::binary>> -> %{result: false, rest: x}
       <<0xC3, x::binary>> -> %{result: true, rest: x}
-      <<n, x::binary>> when is_fix_array(n) -> unpack_array(x)
+      <<n, x::binary>> when is_fix_array(n) -> unpack_array(x, n - 144)
       <<n, x::binary>> when is_fixstr(n) -> unpack_string(x, n - 160)
       <<0xD9, n, x::binary>> when is_8_bit(n) -> unpack_string(x, n)
       <<0xDA, a, b, x::binary>> when is_8_bit(a) and is_8_bit(b) -> unpack_string(x, [a, b])
@@ -22,11 +21,15 @@ defmodule CustomMessagePack do
     end
   end
 
-  defp unpack_array(<<>>), do: %{result: []}
+  defp unpack_array(<<>>, _), do: %{result: []}
 
-  defp unpack_array(x) when is_bitstring(x) do
+  defp unpack_array(x, 0) when is_bitstring(x) do
+    %{result: [], rest: x}
+  end
+
+  defp unpack_array(x, n) when is_bitstring(x) do
     %{result: result, rest: rest} = unpack_value(x)
-    %{result: new_result} = unpack_array(rest)
+    %{result: new_result} = unpack_array(rest, n - 1)
     %{result: [result | new_result]}
   end
 
